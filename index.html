@@ -23,35 +23,96 @@
 
 <div class="card" id="dashboard">
     <h1>Günün Özeti</h1>
-    <div class="stat"><h3 style="color:#1DB954">Dakika</h3><span id="min">--</span></div>
-    <div class="stat"><h3 style="color:#1DB954">Şarkı Sayısı</h3><span id="songs">--</span></div>
-    <div class="stat"><h3 style="color:#1DB954">Favori Parça</h3><span id="track">--</span></div>
-    <button class="btn" onclick="window.location.href='/'" style="background:#333; color:white; margin-top:10px;">Çıkış</button>
+    <div class="stat"><h3 style="color:#1DB954">Dakika</h3><span id="min">Hesaplanıyor...</span></div>
+    <div class="stat"><h3 style="color:#1DB954">Şarkı Sayısı</h3><span id="songs">Hesaplanıyor...</span></div>
+    <div class="stat"><h3 style="color:#1DB954">Favori Parça</h3><span id="track">Hesaplanıyor...</span></div>
+    <button class="btn" onclick="window.location.href=window.location.pathname" style="background:#333; color:white; margin-top:10px;">Çıkış</button>
 </div>
 
 <script>
-    const CLIENT_ID = 'BURAYA_CLIENT_ID_KODUNU_YAZ'; // Sadece bunu doldur, gerisi otomatik!
+    const CLIENT_ID = 'BURAYA_CLIENT_ID_KODUNU_YAZ'; 
     const REDIRECT_URI = window.location.origin + window.location.pathname;
 
-    function authorize() {
-        const url = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=user-read-recently-played`;
-        window.location.href = url;
+    // Şifreleme Algoritmaları (Spotify'ın istediği yeni güvenlik)
+    function generateRandomString(length) {
+      let text = '';
+      let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      for (let i = 0; i < length; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+      }
+      return text;
     }
 
-    async function getStats() {
-        const hash = window.location.hash.substring(1);
-        const params = new URLSearchParams(hash);
-        const token = params.get('access_token');
-        if (!token) return;
+    async function generateCodeChallenge(codeVerifier) {
+      const data = new TextEncoder().encode(codeVerifier);
+      const digest = await window.crypto.subtle.digest('SHA-256', data);
+      return btoa(String.fromCharCode.apply(null, new Uint8Array(digest)))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
 
+    // Spotify'a Yönlendirme
+    async function authorize() {
+      const codeVerifier = generateRandomString(128);
+      window.localStorage.setItem('code_verifier', codeVerifier);
+      const codeChallenge = await generateCodeChallenge(codeVerifier);
+      
+      const args = new URLSearchParams({
+        response_type: 'code',
+        client_id: CLIENT_ID,
+        scope: 'user-read-recently-played',
+        redirect_uri: REDIRECT_URI,
+        code_challenge_method: 'S256',
+        code_challenge: codeChallenge
+      });
+      window.location = 'https://accounts.spotify.com/authorize?' + args;
+    }
+
+    // Spotify'dan Gelen Kodu Analiz Etme
+    async function getToken(code) {
+      let codeVerifier = localStorage.getItem('code_verifier');
+      const body = new URLSearchParams({
+        grant_type: 'authorization_code',
+        code: code,
+        redirect_uri: REDIRECT_URI,
+        client_id: CLIENT_ID,
+        code_verifier: codeVerifier
+      });
+
+      const response = await fetch('https://accounts.spotify.com/api/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body
+      });
+      const data = await response.json();
+      return data.access_token;
+    }
+
+    async function init() {
+      const urlParams = new URLSearchParams(window.location.search);
+      let code = urlParams.get('code');
+
+      if (code) {
+        window.history.replaceState({}, document.title, window.location.pathname);
         document.getElementById('login-ui').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
+        
+        const token = await getToken(code);
+        if(token) fetchStats(token);
+      }
+    }
 
+    // İstatistikleri Çekme ve Hesaplama
+    async function fetchStats(token) {
         const res = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=50', {
             headers: { 'Authorization': 'Bearer ' + token }
         });
         const data = await res.json();
-        const today = new Date().toISOString().split('T')[0];
+        
+        // GMT Saat Dilimi Ayarı (Türkiye Saatine Göre)
+        const todayObj = new Date();
+        todayObj.setHours(todayObj.getHours() + 3); 
+        const today = todayObj.toISOString().split('T')[0];
+        
         let totalMs = 0, count = 0, songs = {};
 
         data.items.forEach(i => {
@@ -64,10 +125,15 @@
 
         document.getElementById('min').innerText = Math.floor(totalMs / 60000) + ' Dakika';
         document.getElementById('songs').innerText = count + ' Şarkı';
-        document.getElementById('track').innerText = Object.keys(songs).reduce((a, b) => songs[a] > songs[b] ? a : b);
+        
+        if(count > 0) {
+            document.getElementById('track').innerText = Object.keys(songs).reduce((a, b) => songs[a] > songs[b] ? a : b);
+        } else {
+            document.getElementById('track').innerText = "Bugün şarkı dinlenmedi";
+        }
     }
 
-    getStats();
+    init();
 </script>
 </body>
 </html>
