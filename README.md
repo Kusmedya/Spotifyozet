@@ -1,0 +1,2 @@
+# Spotifyozet
+Günlük müzik istatistikleri.
