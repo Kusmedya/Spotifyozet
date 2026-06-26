@@ -5,35 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kuş Medya | Spotify Özet</title>
     <style>
-        body { background: #121212; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: #181818; padding: 40px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; border: 1px solid #333; }
-        .btn { background: #1DB954; color: #000; padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; text-decoration: none; display: inline-block; }
-        h1 { margin-bottom: 20px; font-size: 1.5rem; }
-        .stat { margin: 15px 0; padding: 15px; background: #282828; border-radius: 10px; }
+        body { background: #121212; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .card { background: #181818; padding: 30px; border-radius: 20px; text-align: center; width: 100%; max-width: 450px; border: 1px solid #333; }
+        .btn { background: #1DB954; color: #000; padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; border: none; text-decoration: none; display: inline-block; width: 100%; box-sizing: border-box;}
+        h1 { margin-bottom: 10px; font-size: 1.5rem; color: #fff; }
+        .stat { margin: 15px 0; padding: 15px; background: #282828; border-radius: 10px; text-align: left; border-left: 4px solid #1DB954; display: flex; justify-content: space-between; align-items: center;}
+        .stat-left h3 { color: #1DB954; margin: 0 0 5px 0; font-size: 1.1rem; }
+        .stat-left span { color: #b3b3b3; font-size: 0.9rem; }
+        .stat-right { font-size: 1.3rem; font-weight: bold; color: #fff; }
         #dashboard { display: none; }
+        #weekly-stats { max-height: 400px; overflow-y: auto; margin-bottom: 20px; padding-right: 5px; }
+        
+        /* Kaydırma Çubuğu Tasarımı */
+        #weekly-stats::-webkit-scrollbar { width: 6px; }
+        #weekly-stats::-webkit-scrollbar-thumb { background: #1DB954; border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <div class="card" id="login-ui">
-    <h1>Spotify Günlük Özet</h1>
-    <p style="color: #b3b3b3; margin-bottom: 25px;">Kuş Medya Tasarım tarafından geliştirildi.</p>
+    <h1>Spotify Günlük & Haftalık Özet</h1>
+    <p style="color: #b3b3b3; margin-bottom: 25px; font-size: 0.9rem;">Kuş Medya Tasarım tarafından geliştirildi.</p>
     <button class="btn" onclick="authorize()">Spotify ile Bağlan</button>
 </div>
 
 <div class="card" id="dashboard">
-    <h1>Günün Özeti</h1>
-    <div class="stat"><h3 style="color:#1DB954">Dakika</h3><span id="min">Hesaplanıyor...</span></div>
-    <div class="stat"><h3 style="color:#1DB954">Şarkı Sayısı</h3><span id="songs">Hesaplanıyor...</span></div>
-    <div class="stat"><h3 style="color:#1DB954">Favori Parça</h3><span id="track">Hesaplanıyor...</span></div>
-    <button class="btn" onclick="window.location.href=window.location.pathname" style="background:#333; color:white; margin-top:10px;">Çıkış</button>
+    <h1>Dinleme Geçmişin</h1>
+    <p style="color: #b3b3b3; margin-bottom: 20px; font-size: 0.85rem;">(Son 50 şarkı günlere göre ayrılmıştır)</p>
+    
+    <div id="weekly-stats">
+        <p style="color:#888;">Veriler çekiliyor...</p>
+    </div>
+    
+    <button class="btn" onclick="window.location.href=window.location.pathname" style="background:#333; color:white;">Çıkış</button>
 </div>
 
 <script>
+    // Senin şifren buraya eklendi!
     const CLIENT_ID = '1356e6584dcd4b21a0ec9d22175a035d'; 
     const REDIRECT_URI = window.location.origin + window.location.pathname;
 
-    // Şifreleme Algoritmaları (Spotify'ın istediği yeni güvenlik)
     function generateRandomString(length) {
       let text = '';
       let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -50,7 +61,6 @@
         .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     }
 
-    // Spotify'a Yönlendirme
     async function authorize() {
       const codeVerifier = generateRandomString(128);
       window.localStorage.setItem('code_verifier', codeVerifier);
@@ -67,7 +77,6 @@
       window.location = 'https://accounts.spotify.com/authorize?' + args;
     }
 
-    // Spotify'dan Gelen Kodu Analiz Etme
     async function getToken(code) {
       let codeVerifier = localStorage.getItem('code_verifier');
       const body = new URLSearchParams({
@@ -101,36 +110,49 @@
       }
     }
 
-    // İstatistikleri Çekme ve Hesaplama
     async function fetchStats(token) {
         const res = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=50', {
             headers: { 'Authorization': 'Bearer ' + token }
         });
         const data = await res.json();
         
-        // GMT Saat Dilimi Ayarı (Türkiye Saatine Göre)
-        const todayObj = new Date();
-        todayObj.setHours(todayObj.getHours() + 3); 
-        const today = todayObj.toISOString().split('T')[0];
-        
-        let totalMs = 0, count = 0, songs = {};
+        let dailyStats = {};
 
+        // Şarkıları günlere göre grupla
         data.items.forEach(i => {
-            if (i.played_at.startsWith(today)) {
-                totalMs += i.track.duration_ms;
-                count++;
-                songs[i.track.name] = (songs[i.track.name] || 0) + 1;
+            const playedDate = new Date(i.played_at);
+            
+            // Tarihi Türkçe formatta al (Örn: "27 Haziran Cumartesi")
+            const dateStr = playedDate.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' });
+            
+            if (!dailyStats[dateStr]) {
+                dailyStats[dateStr] = { ms: 0, count: 0 };
             }
+            dailyStats[dateStr].ms += i.track.duration_ms;
+            dailyStats[dateStr].count++;
         });
 
-        document.getElementById('min').innerText = Math.floor(totalMs / 60000) + ' Dakika';
-        document.getElementById('songs').innerText = count + ' Şarkı';
-        
-        if(count > 0) {
-            document.getElementById('track').innerText = Object.keys(songs).reduce((a, b) => songs[a] > songs[b] ? a : b);
-        } else {
-            document.getElementById('track').innerText = "Bugün şarkı dinlenmedi";
+        // HTML oluştur
+        let statsHTML = "";
+        for (const [date, stats] of Object.entries(dailyStats)) {
+            const minutes = Math.floor(stats.ms / 60000);
+            statsHTML += `
+            <div class="stat">
+                <div class="stat-left">
+                    <h3>${date}</h3>
+                    <span>${stats.count} Şarkı Dinlendi</span>
+                </div>
+                <div class="stat-right">
+                    ${minutes} Dk
+                </div>
+            </div>`;
         }
+        
+        if(statsHTML === "") {
+            statsHTML = "<p style='color:#b3b3b3;'>Yakın zamanda dinlenmiş şarkı bulunamadı.</p>";
+        }
+
+        document.getElementById('weekly-stats').innerHTML = statsHTML;
     }
 
     init();
