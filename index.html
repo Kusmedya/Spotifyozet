@@ -43,16 +43,21 @@
         .tab:hover { color: #fff; }
         .tab.active { background: #1DB954; color: #000; box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3); }
 
+        /* Yeni Fotoğraflı İçerik Alanı */
         .content-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-        .item-card { display: flex; align-items: center; padding: 15px; background: #181818; border-radius: 16px; transition: 0.3s; border: 1px solid transparent; }
+        .item-card { display: flex; align-items: center; padding: 12px 15px; background: #181818; border-radius: 16px; transition: 0.3s; border: 1px solid transparent; }
         .item-card:hover { background: #222; border-color: #1DB954; transform: translateY(-2px); }
-        .item-rank { font-size: 1.5rem; font-weight: 800; color: #333; width: 40px; text-align: center; }
-        .item-info { flex: 1; margin-left: 10px; }
-        .item-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 4px; color: #fff; }
-        .item-sub { font-size: 0.85rem; color: #a0a0a0; text-transform: capitalize; }
+        .item-rank { font-size: 1.3rem; font-weight: 800; color: #444; width: 35px; text-align: left; }
+        
+        /* Fotoğraf Tasarımı */
+        .item-img { width: 55px; height: 55px; border-radius: 8px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        
+        .item-info { flex: 1; margin-left: 15px; overflow: hidden; }
+        .item-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 4px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-sub { font-size: 0.85rem; color: #a0a0a0; text-transform: capitalize; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
         .loading { text-align: center; padding: 50px; color: #1DB954; font-weight: bold; font-size: 1.1rem; }
-        .error-msg { text-align: center; padding: 30px; color: #e22134; background: rgba(226, 33, 52, 0.1); border-radius: 15px; border: 1px solid #e22134; }
+        .error-msg { text-align: center; padding: 30px; color: #e22134; background: rgba(226, 33, 52, 0.1); border-radius: 15px; border: 1px solid #e22134; margin-bottom: 20px;}
         
         .btn-main { background: #1DB954; color: #000; padding: 16px 40px; border-radius: 50px; font-weight: 800; cursor: pointer; border: none; font-size: 1.1rem; margin-top: 20px; transition: 0.3s; box-shadow: 0 10px 30px rgba(29, 185, 84, 0.4); }
         .btn-main:hover { transform: scale(1.05); background: #1ed760; }
@@ -82,7 +87,7 @@
 <div id="dashboard">
     <div class="header">
         <h2>Analiz Paneli</h2>
-        <button class="logout-btn" onclick="logout()">Çıkış Yap</button>
+        <button class="logout-btn" onclick="hardReset()">Çıkış Yap</button>
     </div>
 
     <div class="controls">
@@ -114,8 +119,9 @@
         document.getElementById('sidebar-overlay').classList.toggle('active');
     }
 
-    function logout() {
-        localStorage.removeItem('code_verifier');
+    // Acımasız Sıfırlama Fonksiyonu (Hata olursa her şeyi temizler)
+    function hardReset() {
+        localStorage.clear();
         window.location.href = REDIRECT_URI;
     }
 
@@ -133,6 +139,7 @@
     }
 
     async function authorize() {
+      hardReset(); // Bağlanmadan önce eski çöpleri kesin temizle
       const codeVerifier = generateRandomString(128);
       window.localStorage.setItem('code_verifier', codeVerifier);
       const codeChallenge = await generateCodeChallenge(codeVerifier);
@@ -150,6 +157,8 @@
 
     async function getToken(code) {
       let codeVerifier = localStorage.getItem('code_verifier');
+      if (!codeVerifier) return null;
+
       const body = new URLSearchParams({
         grant_type: 'authorization_code',
         code: code,
@@ -163,6 +172,8 @@
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body
       });
+      
+      if (!response.ok) return null;
       const data = await response.json();
       return data.access_token;
     }
@@ -172,6 +183,7 @@
       let code = urlParams.get('code');
 
       if (code) {
+        // Linki hemen temizle ki sayfa yenilenince hata vermesin
         window.history.replaceState({}, document.title, window.location.pathname);
         document.getElementById('login-ui').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
@@ -180,7 +192,8 @@
         if(accessToken) {
             loadData();
         } else {
-            document.getElementById('results').innerHTML = '<div class="error-msg">Bağlantı hatası oluştu. Lütfen Çıkış Yapıp tekrar bağlanın.</div>';
+            // Eğer token alınamazsa acımasızca sistemi sıfırla ve başa at
+            hardReset();
         }
       }
     }
@@ -206,39 +219,47 @@
         try {
             if (currentType === 'tracks') {
                 const data = await fetchSpotifyData(`me/top/tracks?time_range=${currentTime}&limit=20`);
-                if(!data.items) throw new Error("Veri çekilemedi");
+                if(!data || !data.items) throw new Error("Veri hatası");
                 let html = '';
                 data.items.forEach((track, index) => {
+                    // Şarkı kapağı fotoğrafını çekiyoruz
+                    const imgUrl = track.album.images.length > 0 ? track.album.images[0].url : '';
+                    
                     html += `
                     <div class="item-card">
                         <div class="item-rank">${index + 1}</div>
+                        ${imgUrl ? `<img src="${imgUrl}" class="item-img">` : ''}
                         <div class="item-info">
                             <div class="item-title">${track.name}</div>
                             <div class="item-sub">${track.artists[0].name}</div>
                         </div>
                     </div>`;
                 });
-                resultsDiv.innerHTML = html || '<p style="text-align:center; color:#888;">Bu dönem için yeterli şarkı verisi yok.</p>';
+                resultsDiv.innerHTML = html || '<p style="text-align:center; color:#888;">Yeterli şarkı verisi yok.</p>';
             } 
             else if (currentType === 'artists') {
                 const data = await fetchSpotifyData(`me/top/artists?time_range=${currentTime}&limit=20`);
-                if(!data.items) throw new Error("Veri çekilemedi");
+                if(!data || !data.items) throw new Error("Veri hatası");
                 let html = '';
                 data.items.forEach((artist, index) => {
+                    // Sanatçı fotoğrafını çekiyoruz
+                    const imgUrl = artist.images.length > 0 ? artist.images[0].url : '';
+
                     html += `
                     <div class="item-card">
                         <div class="item-rank">${index + 1}</div>
+                        ${imgUrl ? `<img src="${imgUrl}" class="item-img" style="border-radius: 50%;">` : ''}
                         <div class="item-info">
                             <div class="item-title">${artist.name}</div>
                             <div class="item-sub">Takipçi: ${artist.followers.total.toLocaleString('tr-TR')}</div>
                         </div>
                     </div>`;
                 });
-                resultsDiv.innerHTML = html || '<p style="text-align:center; color:#888;">Bu dönem için yeterli sanatçı verisi yok.</p>';
+                resultsDiv.innerHTML = html || '<p style="text-align:center; color:#888;">Yeterli sanatçı verisi yok.</p>';
             }
             else if (currentType === 'genres') {
                 const data = await fetchSpotifyData(`me/top/artists?time_range=${currentTime}&limit=50`);
-                if(!data.items) throw new Error("Veri çekilemedi");
+                if(!data || !data.items) throw new Error("Veri hatası");
                 let genreCounts = {};
                 
                 data.items.forEach(artist => {
@@ -255,7 +276,7 @@
                 sortedGenres.forEach((genre, index) => {
                     html += `
                     <div class="item-card">
-                        <div class="item-rank">🏆</div>
+                        <div class="item-rank" style="width:55px; text-align:center;">🏆</div>
                         <div class="item-info">
                             <div class="item-title" style="text-transform: capitalize;">${genre}</div>
                             <div class="item-sub">En çok dinlenen ${index + 1}. müzik tarzın</div>
@@ -265,7 +286,12 @@
                 resultsDiv.innerHTML = html;
             }
         } catch (error) {
-            resultsDiv.innerHTML = '<div class="error-msg"><strong>Yetki Hatası:</strong> Lütfen sağ üstten "Çıkış Yap" butonuna basıp uygulamaya tekrar bağlanın. Spotify yetkileri güncellenmiştir.</div>';
+            resultsDiv.innerHTML = `
+            <div class="error-msg">
+                <strong>Bağlantı Koptu!</strong><br><br>
+                Eski veriler çakıştı. Lütfen aşağıdaki butona basarak sistemi sıfırlayın.<br><br>
+                <button class="btn-main" onclick="hardReset()" style="padding: 10px 20px; font-size:1rem;">Sistemi Sıfırla</button>
+            </div>`;
         }
     }
 
@@ -273,6 +299,7 @@
         const res = await fetch(`https://api.spotify.com/v1/${endpoint}`, {
             headers: { 'Authorization': 'Bearer ' + accessToken }
         });
+        if (!res.ok) throw new Error("Yetki hatası");
         return await res.json();
     }
 
