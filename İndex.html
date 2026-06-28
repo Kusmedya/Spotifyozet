@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuş Medya Tasarım | Premium İstatistik</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: #0b0b0b; color: #ffffff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; position: relative; padding-bottom: 60px; }
+        
+        .glass-panel { background: rgba(24, 24, 24, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        
+        /* Yan Menü (Sidebar) */
+        .menu-btn { position: fixed; top: 20px; left: 20px; font-size: 28px; background: none; border: none; color: #fff; cursor: pointer; z-index: 1000; transition: 0.3s; }
+        .menu-btn:hover { color: #1DB954; }
+        
+        .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100vh; background: #121212; border-right: 1px solid #333; z-index: 999; transition: 0.4s ease; padding: 70px 20px 20px 20px; display: flex; flex-direction: column; gap: 15px; box-shadow: 5px 0 20px rgba(0,0,0,0.8); }
+        .sidebar.active { left: 0; }
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 998; display: none; backdrop-filter: blur(3px); }
+        .sidebar-overlay.active { display: block; }
+
+        .sidebar-brand { font-size: 1.5rem; font-weight: 800; color: #1DB954; margin-bottom: 20px; text-align: center; letter-spacing: 1px; }
+        .sidebar a { color: #b3b3b3; text-decoration: none; font-size: 1.1rem; padding: 12px 15px; border-radius: 10px; transition: 0.3s; background: #181818; border: 1px solid transparent; display: flex; align-items: center; gap: 10px;}
+        .sidebar a:hover { background: #222; color: #fff; border-color: #1DB954; }
+        
+        /* Giriş Ekranı */
+        #login-ui { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; text-align: center; padding: 20px; width: 100%;}
+        #login-ui h1 { font-size: 2.5rem; margin-bottom: 10px; font-weight: 800; background: -webkit-linear-gradient(#1DB954, #1ed760); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        /* Ana Kontrol Paneli */
+        #dashboard { display: none; width: 100%; max-width: 900px; padding: 20px 20px 40px 20px; }
+        
+        .top-brand { text-align: center; font-size: 1.8rem; font-weight: 900; color: #1DB954; letter-spacing: 2px; margin-bottom: 30px; margin-top: 10px; text-shadow: 0 0 15px rgba(29, 185, 84, 0.4); }
+
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header h2 { font-size: 1.5rem; font-weight: 800; }
+        .logout-btn { background: #282828; color: white; padding: 8px 20px; border-radius: 20px; text-decoration: none; font-size: 0.9rem; transition: 0.3s; border: 1px solid #333; cursor: pointer;}
+        .logout-btn:hover { background: #e22134; border-color: #e22134; }
+
+        .controls { display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px; }
+        .tab-group { display: flex; gap: 5px; background: #121212; padding: 5px; border-radius: 12px; border: 1px solid #222; overflow-x: auto;}
+        .tab { flex: 1; text-align: center; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600; color: #888; transition: 0.3s; font-size: 0.9rem; white-space: nowrap; }
+        .tab:hover { color: #fff; }
+        .tab.active { background: #1DB954; color: #000; box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3); }
+
+        /* Fotoğraflı İçerik Alanı */
+        .content-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .item-card { display: flex; align-items: center; padding: 12px 15px; background: #181818; border-radius: 16px; transition: 0.3s; border: 1px solid transparent; }
+        .item-card:hover { background: #222; border-color: #1DB954; transform: translateY(-2px); }
+        .item-rank { font-size: 1.3rem; font-weight: 800; color: #444; width: 35px; text-align: left; }
+        .item-img { width: 55px; height: 55px; border-radius: 8px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        
+        .item-info { flex: 1; margin-left: 15px; overflow: hidden; }
+        .item-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 4px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-sub { font-size: 0.85rem; color: #a0a0a0; text-transform: capitalize; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .loading { text-align: center; padding: 50px; color: #1DB954; font-weight: bold; font-size: 1.1rem; }
+        .error-msg { text-align: center; padding: 30px; color: #e22134; background: rgba(226, 33, 52, 0.1); border-radius: 15px; border: 1px solid #e22134; margin-bottom: 20px;}
+        
+        .btn-main { background: #1DB954; color: #000; padding: 16px 40px; border-radius: 50px; font-weight: 800; cursor: pointer; border: none; font-size: 1.1rem; margin-top: 20px; transition: 0.3s; box-shadow: 0 10px 30px rgba(29, 185, 84, 0.4); }
+        .btn-main:hover { transform: scale(1.05); background: #1ed760; }
+
+        /* Alt Bilgi (Footer) */
+        footer { position: absolute; bottom: 0; width: 100%; text-align: center; padding: 15px; font-size: 0.8rem; color: #666; background: #080808; border-top: 1px solid #1a1a1a; }
+        footer span { color: #1DB954; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<button class="menu-btn" onclick="toggleSidebar()">☰</button>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-brand">KUŞ MEDYA</div>
+    <a href="javascript:void(0)" onclick="alert('🔒 Kuş Medya Güvenilirlik Politikası:\n\nSpotify verileriniz tamamen cihazınızda (tarayıcınızda) anlık olarak işlenir. Hiçbir veri, şifre veya müzik geçmişi Kuş Medya sunucularında saklanmaz veya 3. şahıslarla paylaşılmaz. %100 Güvenli.')">🛡️ Güvenilirlik & Gizlilik</a>
+    <a href="javascript:void(0)" onclick="alert('📞 Bize Ulaşın:\n\nHer türlü soru, görüş, tasarım ve proje işbirlikleri için Instagram adresimiz üzerinden DM atabilirsiniz.')">📞 İletişim</a>
+    <a href="https://www.instagram.com/kusmedya?igsh=MXZzZGkwZzlxZXBjZA==" target="_blank">📷 Instagram'da Biz</a>
+    <a href="https://kusmedya.github.io/" target="_blank">🌐 Kuş Medya Tasarım</a>
+</div>
+
+<div id="login-ui">
+    <div class="glass-panel" style="padding: 40px; text-align: center; width: 100%; max-width: 400px;">
+        <h1>Kuş Medya</h1>
+        <p style="color: #a0a0a0; font-size: 1rem; margin-bottom: 10px;">Premium Müzik İstatistikleri</p>
+        <button class="btn-main" onclick="authorize()">Sisteme Bağlan</button>
+    </div>
+</div>
+
+<div id="dashboard">
+    <div class="top-brand">KUŞ MEDYA</div>
+
+    <div class="header">
+        <h2>Analiz Paneli</h2>
+        <button class="logout-btn" onclick="hardReset()">Çıkış Yap</button>
+    </div>
+
+    <div class="controls">
+        <div class="tab-group" id="time-tabs">
+            <div class="tab active" onclick="changeTime('short_term', this)">Son 1 Ay</div>
+            <div class="tab" onclick="changeTime('medium_term', this)">Son 6 Ay</div>
+            <div class="tab" onclick="changeTime('long_term', this)">Son 1 Yıl</div>
+        </div>
+        
+        <div class="tab-group" id="type-tabs">
+            <div class="tab active" onclick="changeType('tracks', this)">🎵 Şarkılar</div>
+            <div class="tab" onclick="changeType('artists', this)">🎤 Sanatçılar</div>
+            <div class="tab" onclick="changeType('genres', this)">🎸 Müzik Türleri</div>
+        </div>
+    </div>
+
+    <div class="content-grid" id="results"></div>
+</div>
+
+<footer>
+    © 2026 <span>Kuş Medya Tasarım</span>. Tüm hakları saklıdır.
+</footer>
+
+<script>
+    const CLIENT_ID = '1356e6584dcd4b21a0ec9d22175a035d';
+    const REDIRECT_URI = window.location.origin + window.location.pathname;
+    let accessToken = '';
+    let currentTime = 'short_term'; 
+    let currentType = 'tracks'; 
+
+    // YZ SİSTEMİNİN LİNKLERİ BOZMASINI ENGELLEYEN ŞİFRELEME (KESİN ÇÖZÜM)
+    const AUTH_URL = atob('aHR0cHM6Ly9hY2NvdW50cy5zcG90aWZ5LmNvbS9hdXRob3JpemU=') + '?';
+    const TOKEN_URL = atob('aHR0cHM6Ly9hY2NvdW50cy5zcG90aWZ5LmNvbS9hcGkvdG9rZW4=');
+    const API_URL = atob('aHR0cHM6Ly9hcGkuc3BvdGlmeS5jb20vdjEv');
+
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('active');
+        document.getElementById('sidebar-overlay').classList.toggle('active');
+    }
+
+    function hardReset() {
+        localStorage.clear();
+        window.location.href = REDIRECT_URI;
+    }
+
+    function generateRandomString(length) {
+      let text = '';
+      let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      for (let i = 0; i < length; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
+      return text;
+    }
+
+    async function generateCodeChallenge(codeVerifier) {
+      const data = new TextEncoder().encode(codeVerifier);
+      const digest = await window.crypto.subtle.digest('SHA-256', data);
+      return btoa(String.fromCharCode.apply(null, new Uint8Array(digest))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    async function authorize() {
+      hardReset(); 
+      const codeVerifier = generateRandomString(128);
+      window.localStorage.setItem('code_verifier', codeVerifier);
+      const codeChallenge = await generateCodeChallenge(codeVerifier);
+      
+      const args = new URLSearchParams({
+        response_type: 'code',
+        client_id: CLIENT_ID,
+        scope: 'user-top-read', 
+        redirect_uri: REDIRECT_URI,
+        code_challenge_method: 'S256',
+        code_challenge: codeChallenge
+      });
+      window.location = AUTH_URL + args.toString();
+    }
+
+    async function getToken(code) {
+      let codeVerifier = localStorage.getItem('code_verifier');
+      if (!codeVerifier) return null;
+
+      const body = new URLSearchParams({
+        grant_type: 'authorization_code',
+        code: code,
+        redirect_uri: REDIRECT_URI,
+        client_id: CLIENT_ID,
+        code_verifier: codeVerifier
+      });
+
+      const response = await fetch(TOKEN_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body
+      });
+      
+      if (!response.ok) return null;
+      const data = await response.json();
+      return data.access_token;
+    }
+
+    async function init() {
+      const urlParams = new URLSearchParams(window.location.search);
+      let code = urlParams.get('code');
+
+      if (code) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        document.getElementById('login-ui').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        
+        accessToken = await getToken(code);
+        if(accessToken) {
+            loadData();
+        } else {
+            hardReset();
+        }
+      }
+    }
+
+    function changeTime(timeRange, element) {
+        currentTime = timeRange;
+        document.querySelectorAll('#time-tabs .tab').forEach(t => t.classList.remove('active'));
+        element.classList.add('active');
+        loadData();
+    }
+
+    function changeType(type, element) {
+        currentType = type;
+        document.querySelectorAll('#type-tabs .tab').forEach(t => t.classList.remove('active'));
+        element.classList.add('active');
+        loadData();
+    }
+
+    async function loadData() {
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = '<div class="loading">Veriler Analiz Ediliyor...</div>';
+
+        try {
+            if (currentType === 'tracks') {
+                const data = await fetchSpotifyData(`me/top/tracks?time_range=${currentTime}&limit=20`);
+                if(!data || !data.items) throw new Error("Veri hatası");
+                let html = '';
+                data.items.forEach((track, index) => {
+                    const imgUrl = track.album.images.length > 0 ? track.album.images[0].url : '';
+                    html += `
+                    <div class="item-card">
+                        <div class="item-rank">${index + 1}</div>
+                        ${imgUrl ? `<img src="${imgUrl}" class="item-img">` : ''}
+                        <div class="item-info">
+                            <div class="item-title">${track.name}</div>
+                            <div class="item-sub">${track.artists[0].name}</div>
+                        </div>
+                    </div>`;
+                });
+                resultsDiv.innerHTML = html || '<p style="text-align:center; color:#888;">Yeterli şarkı verisi yok.</p>';
+            } 
+            else if (currentType === 'artists') {
+                const data = await fetchSpotifyData(`me/top/artists?time_range=${currentTime}&limit=20`);
+                if(!data || !data.items) throw new Error("Veri hatası");
+                let html = '';
+                data.items.forEach((artist, index) => {
+                    const imgUrl = artist.images.length > 0 ? artist.images[0].url : '';
+                    html += `
+                    <div class="item-card">
+                        <div class="item-rank">${index + 1}</div>
+                        ${imgUrl ? `<img src="${imgUrl}" class="item-img" style="border-radius: 50%;">` : ''}
+                        <div class="item-info">
+                            <div class="item-title">${artist.name}</div>
+                            <div class="item-sub">Takipçi: ${artist.followers.total.toLocaleString('tr-TR')}</div>
+                        </div>
+                    </div>`;
+                });
+                resultsDiv.innerHTML = html || '<p style="text-align:center; color:#888;">Yeterli sanatçı verisi yok.</p>';
+            }
+            else if (currentType === 'genres') {
+                const data = await fetchSpotifyData(`me/top/artists?time_range=${currentTime}&limit=50`);
+                if(!data || !data.items) throw new Error("Veri hatası");
+                let genreCounts = {};
+                
+                data.items.forEach(artist => {
+                    artist.genres.forEach(genre => {
+                        genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+                    });
+                });
+
+                let sortedGenres = Object.keys(genreCounts).sort((a, b) => genreCounts[b] - genreCounts[a]).slice(0, 15);
+                let html = '';
+                if(sortedGenres.length === 0) html = '<p style="color:#888; text-align:center;">Yeterli veri bulunamadı.</p>';
+                
+                sortedGenres.forEach((genre, index) => {
+                    html += `
+                    <div class="item-card">
+                        <div class="item-rank" style="width:55px; text-align:center;">🏆</div>
+                        <div class="item-info">
+                            <div class="item-title" style="text-transform: capitalize;">${genre}</div>
+                            <div class="item-sub">En çok dinlenen ${index + 1}. müzik tarzın</div>
+                        </div>
+                    </div>`;
+                });
+                resultsDiv.innerHTML = html;
+            }
+        } catch (error) {
+            resultsDiv.innerHTML = `
+            <div class="error-msg">
+                <strong>Bağlantı Koptu!</strong><br><br>
+                Eski veriler çakıştı. Lütfen aşağıdaki butona basarak sistemi sıfırlayın.<br><br>
+                <button class="btn-main" onclick="hardReset()" style="padding: 10px 20px; font-size:1rem;">Sistemi Sıfırla</button>
+            </div>`;
+        }
+    }
+
+    async function fetchSpotifyData(endpoint) {
+        const res = await fetch(API_URL + endpoint, {
+            headers: { 'Authorization': 'Bearer ' + accessToken }
+        });
+        if (!res.ok) throw new Error("Yetki hatası");
+        return await res.json();
+    }
+
+    init();
+</script>
+</body>
+</html>
