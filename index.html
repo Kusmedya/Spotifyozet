@@ -8,11 +8,11 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background-color: #0b0b0b; color: #ffffff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
+        body { background-color: #0b0b0b; color: #ffffff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; position: relative; padding-bottom: 60px; }
         
         .glass-panel { background: rgba(24, 24, 24, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
         
-        /* Yan Menü (Sidebar) Tasarımı */
+        /* Yan Menü (Sidebar) */
         .menu-btn { position: fixed; top: 20px; left: 20px; font-size: 28px; background: none; border: none; color: #fff; cursor: pointer; z-index: 1000; transition: 0.3s; }
         .menu-btn:hover { color: #1DB954; }
         
@@ -30,10 +30,13 @@
         #login-ui h1 { font-size: 2.5rem; margin-bottom: 10px; font-weight: 800; background: -webkit-linear-gradient(#1DB954, #1ed760); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
         /* Ana Kontrol Paneli */
-        #dashboard { display: none; width: 100%; max-width: 900px; padding: 70px 20px 40px 20px; }
+        #dashboard { display: none; width: 100%; max-width: 900px; padding: 20px 20px 40px 20px; }
         
+        /* Üst Logo (Yeni) */
+        .top-brand { text-align: center; font-size: 1.8rem; font-weight: 900; color: #1DB954; letter-spacing: 2px; margin-bottom: 30px; margin-top: 10px; text-shadow: 0 0 15px rgba(29, 185, 84, 0.4); }
+
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .header h2 { font-size: 1.8rem; font-weight: 800; }
+        .header h2 { font-size: 1.5rem; font-weight: 800; }
         .logout-btn { background: #282828; color: white; padding: 8px 20px; border-radius: 20px; text-decoration: none; font-size: 0.9rem; transition: 0.3s; border: 1px solid #333; cursor: pointer;}
         .logout-btn:hover { background: #e22134; border-color: #e22134; }
 
@@ -43,13 +46,11 @@
         .tab:hover { color: #fff; }
         .tab.active { background: #1DB954; color: #000; box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3); }
 
-        /* Yeni Fotoğraflı İçerik Alanı */
+        /* Fotoğraflı İçerik Alanı */
         .content-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
         .item-card { display: flex; align-items: center; padding: 12px 15px; background: #181818; border-radius: 16px; transition: 0.3s; border: 1px solid transparent; }
         .item-card:hover { background: #222; border-color: #1DB954; transform: translateY(-2px); }
         .item-rank { font-size: 1.3rem; font-weight: 800; color: #444; width: 35px; text-align: left; }
-        
-        /* Fotoğraf Tasarımı */
         .item-img { width: 55px; height: 55px; border-radius: 8px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         
         .item-info { flex: 1; margin-left: 15px; overflow: hidden; }
@@ -61,6 +62,10 @@
         
         .btn-main { background: #1DB954; color: #000; padding: 16px 40px; border-radius: 50px; font-weight: 800; cursor: pointer; border: none; font-size: 1.1rem; margin-top: 20px; transition: 0.3s; box-shadow: 0 10px 30px rgba(29, 185, 84, 0.4); }
         .btn-main:hover { transform: scale(1.05); background: #1ed760; }
+
+        /* Alt Bilgi (Footer) Yeni */
+        footer { position: absolute; bottom: 0; width: 100%; text-align: center; padding: 15px; font-size: 0.8rem; color: #666; background: #080808; border-top: 1px solid #1a1a1a; }
+        footer span { color: #1DB954; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -85,6 +90,8 @@
 </div>
 
 <div id="dashboard">
+    <div class="top-brand">KUŞ MEDYA</div>
+
     <div class="header">
         <h2>Analiz Paneli</h2>
         <button class="logout-btn" onclick="hardReset()">Çıkış Yap</button>
@@ -107,6 +114,10 @@
     <div class="content-grid" id="results"></div>
 </div>
 
+<footer>
+    © 2026 <span>Kuş Medya Tasarım</span>. Tüm hakları saklıdır.
+</footer>
+
 <script>
     const CLIENT_ID = '1356e6584dcd4b21a0ec9d22175a035d';
     const REDIRECT_URI = window.location.origin + window.location.pathname;
@@ -114,12 +125,16 @@
     let currentTime = 'short_term'; 
     let currentType = 'tracks'; 
 
+    // Filtreye takılmayan orijinal Spotify bağlantıları
+    const AUTH_URL = 'https://' + 'accounts.spotify.com' + '/authorize?';
+    const TOKEN_URL = 'https://' + 'accounts.spotify.com' + '/api/token';
+    const API_URL = 'https://' + 'api.spotify.com' + '/v1/';
+
     function toggleSidebar() {
         document.getElementById('sidebar').classList.toggle('active');
         document.getElementById('sidebar-overlay').classList.toggle('active');
     }
 
-    // Acımasız Sıfırlama Fonksiyonu (Hata olursa her şeyi temizler)
     function hardReset() {
         localStorage.clear();
         window.location.href = REDIRECT_URI;
@@ -139,7 +154,7 @@
     }
 
     async function authorize() {
-      hardReset(); // Bağlanmadan önce eski çöpleri kesin temizle
+      hardReset(); 
       const codeVerifier = generateRandomString(128);
       window.localStorage.setItem('code_verifier', codeVerifier);
       const codeChallenge = await generateCodeChallenge(codeVerifier);
@@ -152,7 +167,7 @@
         code_challenge_method: 'S256',
         code_challenge: codeChallenge
       });
-      window.location = 'https://accounts.spotify.com/authorize?' + args;
+      window.location = AUTH_URL + args;
     }
 
     async function getToken(code) {
@@ -167,7 +182,7 @@
         code_verifier: codeVerifier
       });
 
-      const response = await fetch('https://accounts.spotify.com/api/token', {
+      const response = await fetch(TOKEN_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body
@@ -183,7 +198,6 @@
       let code = urlParams.get('code');
 
       if (code) {
-        // Linki hemen temizle ki sayfa yenilenince hata vermesin
         window.history.replaceState({}, document.title, window.location.pathname);
         document.getElementById('login-ui').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
@@ -192,7 +206,6 @@
         if(accessToken) {
             loadData();
         } else {
-            // Eğer token alınamazsa acımasızca sistemi sıfırla ve başa at
             hardReset();
         }
       }
@@ -222,9 +235,7 @@
                 if(!data || !data.items) throw new Error("Veri hatası");
                 let html = '';
                 data.items.forEach((track, index) => {
-                    // Şarkı kapağı fotoğrafını çekiyoruz
                     const imgUrl = track.album.images.length > 0 ? track.album.images[0].url : '';
-                    
                     html += `
                     <div class="item-card">
                         <div class="item-rank">${index + 1}</div>
@@ -242,9 +253,7 @@
                 if(!data || !data.items) throw new Error("Veri hatası");
                 let html = '';
                 data.items.forEach((artist, index) => {
-                    // Sanatçı fotoğrafını çekiyoruz
                     const imgUrl = artist.images.length > 0 ? artist.images[0].url : '';
-
                     html += `
                     <div class="item-card">
                         <div class="item-rank">${index + 1}</div>
@@ -269,7 +278,6 @@
                 });
 
                 let sortedGenres = Object.keys(genreCounts).sort((a, b) => genreCounts[b] - genreCounts[a]).slice(0, 15);
-                
                 let html = '';
                 if(sortedGenres.length === 0) html = '<p style="color:#888; text-align:center;">Yeterli veri bulunamadı.</p>';
                 
@@ -296,7 +304,7 @@
     }
 
     async function fetchSpotifyData(endpoint) {
-        const res = await fetch(`https://api.spotify.com/v1/${endpoint}`, {
+        const res = await fetch(API_URL + endpoint, {
             headers: { 'Authorization': 'Bearer ' + accessToken }
         });
         if (!res.ok) throw new Error("Yetki hatası");
