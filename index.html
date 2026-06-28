@@ -10,15 +10,28 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background-color: #0b0b0b; color: #ffffff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
         
-        /* Premium Cam Efekti (Glassmorphism) */
+        /* Premium Cam Efekti */
         .glass-panel { background: rgba(24, 24, 24, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
         
+        /* Yan Menü (Sidebar) Tasarımı */
+        .menu-btn { position: fixed; top: 20px; left: 20px; font-size: 28px; background: none; border: none; color: #fff; cursor: pointer; z-index: 1000; transition: 0.3s; }
+        .menu-btn:hover { color: #1DB954; }
+        
+        .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100vh; background: #121212; border-right: 1px solid #333; z-index: 999; transition: 0.4s ease; padding: 70px 20px 20px 20px; display: flex; flex-direction: column; gap: 15px; box-shadow: 5px 0 20px rgba(0,0,0,0.8); }
+        .sidebar.active { left: 0; }
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 998; display: none; backdrop-filter: blur(3px); }
+        .sidebar-overlay.active { display: block; }
+
+        .sidebar-brand { font-size: 1.5rem; font-weight: 800; color: #1DB954; margin-bottom: 20px; text-align: center; letter-spacing: 1px; }
+        .sidebar a { color: #b3b3b3; text-decoration: none; font-size: 1.1rem; padding: 12px 15px; border-radius: 10px; transition: 0.3s; background: #181818; border: 1px solid transparent; display: flex; align-items: center; gap: 10px;}
+        .sidebar a:hover { background: #222; color: #fff; border-color: #1DB954; }
+        
         /* Giriş Ekranı */
-        #login-ui { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; text-align: center; padding: 20px; }
-        #login-ui h1 { font-size: 3rem; margin-bottom: 10px; font-weight: 800; background: -webkit-linear-gradient(#1DB954, #1ed760); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        #login-ui { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; text-align: center; padding: 20px; width: 100%;}
+        #login-ui h1 { font-size: 2.5rem; margin-bottom: 10px; font-weight: 800; background: -webkit-linear-gradient(#1DB954, #1ed760); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
         /* Ana Kontrol Paneli */
-        #dashboard { display: none; width: 100%; max-width: 900px; padding: 40px 20px; }
+        #dashboard { display: none; width: 100%; max-width: 900px; padding: 70px 20px 40px 20px; }
         
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         .header h2 { font-size: 1.8rem; font-weight: 800; }
@@ -26,22 +39,23 @@
         .logout-btn:hover { background: #e22134; border-color: #e22134; }
 
         /* Filtre Sekmeleri */
-        .controls { display: flex; flex-direction: column; gap: 20px; margin-bottom: 30px; }
-        .tab-group { display: flex; gap: 10px; background: #121212; padding: 5px; border-radius: 12px; border: 1px solid #222; overflow-x: auto;}
+        .controls { display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px; }
+        .tab-group { display: flex; gap: 5px; background: #121212; padding: 5px; border-radius: 12px; border: 1px solid #222; overflow-x: auto;}
         .tab { flex: 1; text-align: center; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600; color: #888; transition: 0.3s; font-size: 0.9rem; white-space: nowrap; }
         .tab:hover { color: #fff; }
         .tab.active { background: #1DB954; color: #000; box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3); }
 
         /* İçerik Alanı */
-        .content-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        .content-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
         .item-card { display: flex; align-items: center; padding: 15px; background: #181818; border-radius: 16px; transition: 0.3s; border: 1px solid transparent; }
         .item-card:hover { background: #222; border-color: #1DB954; transform: translateY(-2px); }
         .item-rank { font-size: 1.5rem; font-weight: 800; color: #333; width: 40px; text-align: center; }
-        .item-info { flex: 1; margin-left: 15px; }
+        .item-info { flex: 1; margin-left: 10px; }
         .item-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 4px; color: #fff; }
         .item-sub { font-size: 0.85rem; color: #a0a0a0; text-transform: capitalize; }
         
-        .loading { text-align: center; padding: 50px; color: #1DB954; font-weight: bold; font-size: 1.2rem; }
+        .loading { text-align: center; padding: 50px; color: #1DB954; font-weight: bold; font-size: 1.1rem; }
+        .error-msg { text-align: center; padding: 30px; color: #e22134; background: rgba(226, 33, 52, 0.1); border-radius: 15px; border: 1px solid #e22134; }
         
         .btn-main { background: #1DB954; color: #000; padding: 16px 40px; border-radius: 50px; font-weight: 800; cursor: pointer; border: none; font-size: 1.1rem; margin-top: 20px; transition: 0.3s; box-shadow: 0 10px 30px rgba(29, 185, 84, 0.4); }
         .btn-main:hover { transform: scale(1.05); background: #1ed760; }
@@ -49,10 +63,21 @@
 </head>
 <body>
 
+<button class="menu-btn" onclick="toggleSidebar()">☰</button>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-brand">KUŞ MEDYA</div>
+    <a href="#">🛡️ Güvenilirlik & Gizlilik</a>
+    <a href="#">📞 İletişim</a>
+    <a href="#">📷 Instagram'da Biz</a>
+    <a href="#">🌐 Kuş Medya Tasarım</a>
+</div>
+
 <div id="login-ui">
-    <div class="glass-panel" style="padding: 50px; text-align: center;">
+    <div class="glass-panel" style="padding: 40px; text-align: center; width: 100%; max-width: 400px;">
         <h1>Kuş Medya</h1>
-        <p style="color: #a0a0a0; font-size: 1.1rem; margin-bottom: 10px;">Premium Müzik İstatistikleri</p>
+        <p style="color: #a0a0a0; font-size: 1rem; margin-bottom: 10px;">Premium Müzik İstatistikleri</p>
         <button class="btn-main" onclick="authorize()">Sisteme Bağlan</button>
     </div>
 </div>
@@ -60,7 +85,7 @@
 <div id="dashboard">
     <div class="header">
         <h2>Analiz Paneli</h2>
-        <button class="logout-btn" onclick="window.location.href=window.location.pathname">Çıkış Yap</button>
+        <button class="logout-btn" onclick="logout()">Çıkış Yap</button>
     </div>
 
     <div class="controls">
@@ -85,10 +110,22 @@
     const CLIENT_ID = '1356e6584dcd4b21a0ec9d22175a035d';
     const REDIRECT_URI = window.location.origin + window.location.pathname;
     let accessToken = '';
-    let currentTime = 'short_term'; // Başlangıç zamanı: 1 Ay
-    let currentType = 'tracks'; // Başlangıç türü: Şarkılar
+    let currentTime = 'short_term'; 
+    let currentType = 'tracks'; 
 
-    // PKCE Şifreleme Kodları
+    // Yan Menü Açma/Kapama Fonksiyonu
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('active');
+        document.getElementById('sidebar-overlay').classList.toggle('active');
+    }
+
+    // Tamamen Çıkış Yapma Fonksiyonu
+    function logout() {
+        localStorage.removeItem('code_verifier');
+        window.location.href = REDIRECT_URI;
+    }
+
+    // PKCE Şifreleme
     function generateRandomString(length) {
       let text = '';
       let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -110,8 +147,7 @@
       const args = new URLSearchParams({
         response_type: 'code',
         client_id: CLIENT_ID,
-        // DİKKAT: Artık geçmişi değil, EN ÇOK dinlenenleri istiyoruz (user-top-read)
-        scope: 'user-top-read', 
+        scope: 'user-top-read', // YENİ GEREKLİ İZİN BURADA
         redirect_uri: REDIRECT_URI,
         code_challenge_method: 'S256',
         code_challenge: codeChallenge
@@ -148,11 +184,14 @@
         document.getElementById('dashboard').style.display = 'block';
         
         accessToken = await getToken(code);
-        if(accessToken) loadData();
+        if(accessToken) {
+            loadData();
+        } else {
+            document.getElementById('results').innerHTML = '<div class="error-msg">Bağlantı hatası oluştu. Lütfen Çıkış Yapıp tekrar bağlanın.</div>';
+        }
       }
     }
 
-    // Arayüz Sekme Değiştirme Fonksiyonları
     function changeTime(timeRange, element) {
         currentTime = timeRange;
         document.querySelectorAll('#time-tabs .tab').forEach(t => t.classList.remove('active'));
@@ -167,74 +206,78 @@
         loadData();
     }
 
-    // Veri Çekme ve Ekrana Basma
     async function loadData() {
         const resultsDiv = document.getElementById('results');
         resultsDiv.innerHTML = '<div class="loading">Veriler Analiz Ediliyor...</div>';
 
-        if (currentType === 'tracks') {
-            const data = await fetchSpotifyData(`me/top/tracks?time_range=${currentTime}&limit=20`);
-            let html = '';
-            data.items.forEach((track, index) => {
-                html += `
-                <div class="item-card">
-                    <div class="item-rank">${index + 1}</div>
-                    <div class="item-info">
-                        <div class="item-title">${track.name}</div>
-                        <div class="item-sub">${track.artists[0].name}</div>
-                    </div>
-                </div>`;
-            });
-            resultsDiv.innerHTML = html;
-        } 
-        else if (currentType === 'artists') {
-            const data = await fetchSpotifyData(`me/top/artists?time_range=${currentTime}&limit=20`);
-            let html = '';
-            data.items.forEach((artist, index) => {
-                html += `
-                <div class="item-card">
-                    <div class="item-rank">${index + 1}</div>
-                    <div class="item-info">
-                        <div class="item-title">${artist.name}</div>
-                        <div class="item-sub">Takipçi: ${artist.followers.total.toLocaleString('tr-TR')}</div>
-                    </div>
-                </div>`;
-            });
-            resultsDiv.innerHTML = html;
-        }
-        else if (currentType === 'genres') {
-            // Müzik türleri direkt API'den gelmez, sanatçıların üzerinden hesaplanır
-            const data = await fetchSpotifyData(`me/top/artists?time_range=${currentTime}&limit=50`);
-            let genreCounts = {};
-            
-            data.items.forEach(artist => {
-                artist.genres.forEach(genre => {
-                    genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+        try {
+            if (currentType === 'tracks') {
+                const data = await fetchSpotifyData(`me/top/tracks?time_range=${currentTime}&limit=20`);
+                if(!data.items) throw new Error("Veri çekilemedi");
+                let html = '';
+                data.items.forEach((track, index) => {
+                    html += `
+                    <div class="item-card">
+                        <div class="item-rank">${index + 1}</div>
+                        <div class="item-info">
+                            <div class="item-title">${track.name}</div>
+                            <div class="item-sub">${track.artists[0].name}</div>
+                        </div>
+                    </div>`;
                 });
-            });
+                resultsDiv.innerHTML = html || '<p style="text-align:center; color:#888;">Bu dönem için yeterli şarkı verisi yok.</p>';
+            } 
+            else if (currentType === 'artists') {
+                const data = await fetchSpotifyData(`me/top/artists?time_range=${currentTime}&limit=20`);
+                if(!data.items) throw new Error("Veri çekilemedi");
+                let html = '';
+                data.items.forEach((artist, index) => {
+                    html += `
+                    <div class="item-card">
+                        <div class="item-rank">${index + 1}</div>
+                        <div class="item-info">
+                            <div class="item-title">${artist.name}</div>
+                            <div class="item-sub">Takipçi: ${artist.followers.total.toLocaleString('tr-TR')}</div>
+                        </div>
+                    </div>`;
+                });
+                resultsDiv.innerHTML = html || '<p style="text-align:center; color:#888;">Bu dönem için yeterli sanatçı verisi yok.</p>';
+            }
+            else if (currentType === 'genres') {
+                const data = await fetchSpotifyData(`me/top/artists?time_range=${currentTime}&limit=50`);
+                if(!data.items) throw new Error("Veri çekilemedi");
+                let genreCounts = {};
+                
+                data.items.forEach(artist => {
+                    artist.genres.forEach(genre => {
+                        genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+                    });
+                });
 
-            // En çok dinlenen türleri sıraya diz
-            let sortedGenres = Object.keys(genreCounts).sort((a, b) => genreCounts[b] - genreCounts[a]).slice(0, 15);
-            
-            let html = '';
-            if(sortedGenres.length === 0) html = '<p style="color:#888; text-align:center;">Yeterli veri bulunamadı.</p>';
-            
-            sortedGenres.forEach((genre, index) => {
-                html += `
-                <div class="item-card">
-                    <div class="item-rank">🏆</div>
-                    <div class="item-info">
-                        <div class="item-title" style="text-transform: capitalize;">${genre}</div>
-                        <div class="item-sub">En çok dinlenen ${index + 1}. müzik tarzın</div>
-                    </div>
-                </div>`;
-            });
-            resultsDiv.innerHTML = html;
+                let sortedGenres = Object.keys(genreCounts).sort((a, b) => genreCounts[b] - genreCounts[a]).slice(0, 15);
+                
+                let html = '';
+                if(sortedGenres.length === 0) html = '<p style="color:#888; text-align:center;">Yeterli veri bulunamadı.</p>';
+                
+                sortedGenres.forEach((genre, index) => {
+                    html += `
+                    <div class="item-card">
+                        <div class="item-rank">🏆</div>
+                        <div class="item-info">
+                            <div class="item-title" style="text-transform: capitalize;">${genre}</div>
+                            <div class="item-sub">En çok dinlenen ${index + 1}. müzik tarzın</div>
+                        </div>
+                    </div>`;
+                });
+                resultsDiv.innerHTML = html;
+            }
+        } catch (error) {
+            resultsDiv.innerHTML = '<div class="error-msg"><strong>Yetki Hatası:</strong> Lütfen sağ üstten "Çıkış Yap" butonuna basıp uygulamaya tekrar bağlanın. Spotify yetkileri güncellenmiştir.</div>';
         }
     }
 
     async function fetchSpotifyData(endpoint) {
-        const res = await fetch(`https://developer.spotify.com/0/${endpoint}`, {
+        const res = await fetch(`https://api.spotify.com/v1/${endpoint}`, {
             headers: { 'Authorization': 'Bearer ' + accessToken }
         });
         return await res.json();
