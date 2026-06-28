@@ -10,7 +10,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background-color: #0b0b0b; color: #ffffff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
         
-        /* Premium Cam Efekti */
         .glass-panel { background: rgba(24, 24, 24, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
         
         /* Yan Menü (Sidebar) Tasarımı */
@@ -38,14 +37,12 @@
         .logout-btn { background: #282828; color: white; padding: 8px 20px; border-radius: 20px; text-decoration: none; font-size: 0.9rem; transition: 0.3s; border: 1px solid #333; cursor: pointer;}
         .logout-btn:hover { background: #e22134; border-color: #e22134; }
 
-        /* Filtre Sekmeleri */
         .controls { display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px; }
         .tab-group { display: flex; gap: 5px; background: #121212; padding: 5px; border-radius: 12px; border: 1px solid #222; overflow-x: auto;}
         .tab { flex: 1; text-align: center; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600; color: #888; transition: 0.3s; font-size: 0.9rem; white-space: nowrap; }
         .tab:hover { color: #fff; }
         .tab.active { background: #1DB954; color: #000; box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3); }
 
-        /* İçerik Alanı */
         .content-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
         .item-card { display: flex; align-items: center; padding: 15px; background: #181818; border-radius: 16px; transition: 0.3s; border: 1px solid transparent; }
         .item-card:hover { background: #222; border-color: #1DB954; transform: translateY(-2px); }
@@ -68,10 +65,10 @@
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <div class="sidebar" id="sidebar">
     <div class="sidebar-brand">KUŞ MEDYA</div>
-    <a href="#">🛡️ Güvenilirlik & Gizlilik</a>
-    <a href="#">📞 İletişim</a>
-    <a href="#">📷 Instagram'da Biz</a>
-    <a href="#">🌐 Kuş Medya Tasarım</a>
+    <a href="javascript:void(0)" onclick="alert('🔒 Kuş Medya Güvenilirlik Politikası:\n\nSpotify verileriniz tamamen cihazınızda (tarayıcınızda) anlık olarak işlenir. Hiçbir veri, şifre veya müzik geçmişi Kuş Medya sunucularında saklanmaz veya 3. şahıslarla paylaşılmaz. %100 Güvenli.')">🛡️ Güvenilirlik & Gizlilik</a>
+    <a href="javascript:void(0)" onclick="alert('📞 Bize Ulaşın:\n\nHer türlü soru, görüş, tasarım ve proje işbirlikleri için Instagram adresimiz üzerinden DM atabilirsiniz.')">📞 İletişim</a>
+    <a href="https://www.instagram.com/kusmedya?igsh=MXZzZGkwZzlxZXBjZA==" target="_blank">📷 Instagram'da Biz</a>
+    <a href="https://kusmedya.github.io/" target="_blank">🌐 Kuş Medya Tasarım</a>
 </div>
 
 <div id="login-ui">
@@ -102,8 +99,7 @@
         </div>
     </div>
 
-    <div class="content-grid" id="results">
-        </div>
+    <div class="content-grid" id="results"></div>
 </div>
 
 <script>
@@ -113,19 +109,16 @@
     let currentTime = 'short_term'; 
     let currentType = 'tracks'; 
 
-    // Yan Menü Açma/Kapama Fonksiyonu
     function toggleSidebar() {
         document.getElementById('sidebar').classList.toggle('active');
         document.getElementById('sidebar-overlay').classList.toggle('active');
     }
 
-    // Tamamen Çıkış Yapma Fonksiyonu
     function logout() {
         localStorage.removeItem('code_verifier');
         window.location.href = REDIRECT_URI;
     }
 
-    // PKCE Şifreleme
     function generateRandomString(length) {
       let text = '';
       let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -147,7 +140,7 @@
       const args = new URLSearchParams({
         response_type: 'code',
         client_id: CLIENT_ID,
-        scope: 'user-top-read', // YENİ GEREKLİ İZİN BURADA
+        scope: 'user-top-read', 
         redirect_uri: REDIRECT_URI,
         code_challenge_method: 'S256',
         code_challenge: codeChallenge
